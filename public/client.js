@@ -43,15 +43,102 @@ window.addEventListener('DOMContentLoaded', function() {
     // This preserves event listeners, form input state, focus, etc.
     morphdom(document.body, newBody, {
       onBeforeElUpdated: function(fromEl, toEl) {
-        // Preserve input values
-        if (fromEl.tagName === 'INPUT' && fromEl.type !== 'password') {
+        // Preserve form element states
+        if (fromEl.tagName === 'INPUT') {
+          switch (fromEl.type) {
+            case 'checkbox':
+            case 'radio':
+              toEl.checked = fromEl.checked;
+              break;
+            case 'password':
+              // Optionally preserve password fields
+              if (fromEl.value !== '') {
+                toEl.value = fromEl.value;
+              }
+              break;
+            default:
+              toEl.value = fromEl.value;
+          }
+        } else if (fromEl.tagName === 'TEXTAREA') {
           toEl.value = fromEl.value;
+        } else if (fromEl.tagName === 'SELECT') {
+          // Preserve selected options
+          const selectedValues = Array.from(fromEl.selectedOptions).map(o => o.value);
+          Array.from(toEl.options).forEach(option => {
+            option.selected = selectedValues.includes(option.value);
+          });
         }
-        // Preserve focus
-        if (fromEl === document.activeElement && fromEl.tagName === 'INPUT') {
-          setTimeout(() => toEl.focus(), 0);
+        
+        // Preserve focus and cursor position
+        if (fromEl === document.activeElement) {
+          const tagName = fromEl.tagName;
+          if (tagName === 'INPUT' || tagName === 'TEXTAREA') {
+            const start = fromEl.selectionStart;
+            const end = fromEl.selectionEnd;
+            const direction = fromEl.selectionDirection;
+            
+            setTimeout(() => {
+              toEl.focus();
+              // Restore cursor position
+              if (toEl.setSelectionRange && start !== null && end !== null) {
+                toEl.setSelectionRange(start, end, direction);
+              }
+            }, 0);
+          } else {
+            setTimeout(() => toEl.focus(), 0);
+          }
         }
+        
+        // Preserve scroll positions
+        if (fromEl.scrollTop > 0 || fromEl.scrollLeft > 0) {
+          toEl.scrollTop = fromEl.scrollTop;
+          toEl.scrollLeft = fromEl.scrollLeft;
+        }
+        
+        // Preserve custom data attributes that might be used by JavaScript
+        if (fromEl.dataset) {
+          Object.keys(fromEl.dataset).forEach(key => {
+            if (key.startsWith('preserve') || key.startsWith('state')) {
+              toEl.dataset[key] = fromEl.dataset[key];
+            }
+          });
+        }
+        
+        // Skip updating if element has data-preserve attribute
+        if (fromEl.hasAttribute('data-preserve')) {
+          return false;
+        }
+        
+        // Preserve contenteditable content
+        if (fromEl.contentEditable === 'true' && fromEl.innerHTML !== toEl.innerHTML) {
+          toEl.innerHTML = fromEl.innerHTML;
+        }
+        
+        // Preserve details/summary open state
+        if (fromEl.tagName === 'DETAILS') {
+          toEl.open = fromEl.open;
+        }
+        
+        // Preserve dialog open state
+        if (fromEl.tagName === 'DIALOG') {
+          if (fromEl.open && !toEl.open) {
+            setTimeout(() => toEl.showModal(), 0);
+          } else if (!fromEl.open && toEl.open) {
+            toEl.close();
+          }
+        }
+        
         return true;
+      },
+      onNodeAdded: function(node) {
+        // Handle any animations for new nodes
+        if (node.nodeType === 1 && node.classList) {
+          node.style.opacity = '0';
+          setTimeout(() => {
+            node.style.transition = 'opacity 0.3s';
+            node.style.opacity = '1';
+          }, 10);
+        }
       }
     });
   });
