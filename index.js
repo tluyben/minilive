@@ -97,7 +97,7 @@ function renderTemplate(page, data, injectScripts = true) {
       // Then inject the main scripts before </head>
       const headEndIndex = template.toLowerCase().indexOf('</head>');
       if (headEndIndex !== -1) {
-        const scriptTags = `  <script src="/socket.io/socket.io.js"></script>\n  <script src="/client.js"></script>\n`;
+        const scriptTags = `  <script src="/morphdom-umd.js"></script>\n  <script src="/socket.io/socket.io.js"></script>\n  <script src="/client.js"></script>\n`;
         template = template.slice(0, headEndIndex) + scriptTags + template.slice(headEndIndex);
       }
     }

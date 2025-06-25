@@ -33,9 +33,27 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Listen for HTML updates from server
   socket.on('update', ({ html }) => {
-    console.log('Update received');
-    // Simple approach: update the entire body content
-    document.body.innerHTML = html;
+    console.log('Update received, applying intelligent patch...');
+    
+    // Create a temporary body element with the new content
+    const newBody = document.createElement('body');
+    newBody.innerHTML = html;
+    
+    // Use morphdom to intelligently update the body
+    // This preserves event listeners, form input state, focus, etc.
+    morphdom(document.body, newBody, {
+      onBeforeElUpdated: function(fromEl, toEl) {
+        // Preserve input values
+        if (fromEl.tagName === 'INPUT' && fromEl.type !== 'password') {
+          toEl.value = fromEl.value;
+        }
+        // Preserve focus
+        if (fromEl === document.activeElement && fromEl.tagName === 'INPUT') {
+          setTimeout(() => toEl.focus(), 0);
+        }
+        return true;
+      }
+    });
   });
 
   // Listen for commands from server
