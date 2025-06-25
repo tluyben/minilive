@@ -170,6 +170,22 @@ window.addEventListener('DOMContentLoaded', function() {
           metaTag.setAttribute('content', content);
         });
       }
+      
+      // Update styles (for SPA navigation)
+      if (head.styles) {
+        // Remove all existing page-specific styles (keep global styles)
+        document.querySelectorAll('style[data-page-style]').forEach(style => {
+          style.remove();
+        });
+        
+        // Add new styles
+        head.styles.forEach((styleContent, index) => {
+          const styleTag = document.createElement('style');
+          styleTag.setAttribute('data-page-style', 'true');
+          styleTag.textContent = styleContent;
+          document.head.appendChild(styleTag);
+        });
+      }
     }
   });
 
@@ -178,7 +194,22 @@ window.addEventListener('DOMContentLoaded', function() {
     console.log('Command received:', data);
     switch (data.command) {
       case 'redirect':
-        window.location.href = data.location;
+        // SPA navigation - request new page content instead of hard redirect
+        const targetPath = data.location;
+        const match = targetPath.match(/^\/pages\/(.+)$/);
+        if (match) {
+          const targetPage = match[1];
+          console.log('SPA navigating to:', targetPage);
+          
+          // Update URL without reload
+          history.pushState({ page: targetPage }, '', targetPath);
+          
+          // Request the new page content
+          window.triggerEvent('navigate', { targetPage: targetPage });
+        } else {
+          // Fallback to hard redirect for non-page URLs
+          window.location.href = data.location;
+        }
         break;
       case 'reload':
         window.location.reload();
@@ -207,4 +238,16 @@ window.addEventListener('DOMContentLoaded', function() {
   socket.on('disconnect', () => {
     console.log('Disconnected from server');
   });
+  
+  // Handle browser back/forward navigation
+  window.addEventListener('popstate', (event) => {
+    if (event.state && event.state.page) {
+      console.log('Browser navigation to:', event.state.page);
+      window.triggerEvent('navigate', { targetPage: event.state.page });
+    }
+  });
+  
+  // Set initial state
+  const currentPage = getCurrentPage();
+  history.replaceState({ page: currentPage }, '', window.location.pathname);
 });

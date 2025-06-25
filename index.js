@@ -113,6 +113,14 @@ io.on('connection', (socket) => {
   
   socket.on('event', async ({ page, eventType, payload }) => {
     try {
+      // Handle SPA navigation
+      if (eventType === 'navigate' && payload.targetPage) {
+        page = payload.targetPage;
+        eventType = 'onLoad';
+        // Clear the previous state for the target page to ensure fresh render
+        delete pageStates[page];
+      }
+      
       // Prepare input for the logic script
       const input = {
         request: {
@@ -120,6 +128,7 @@ io.on('connection', (socket) => {
           headers: socket.handshake.headers,
           query: socket.handshake.query
         },
+        ...socket.handshake.query, // Flatten query params
         event: eventType,
         payload: payload || {}
       };
@@ -140,15 +149,18 @@ io.on('connection', (socket) => {
       const variables = { ...output };
       delete variables.commands;
       
+      // For navigation, always send update (don't compare with previous state)
+      const isNavigation = input.event === 'onLoad' && input.payload && input.payload.targetPage;
+      
       // Get previous state for this page
       const prevVariables = pageStates[page] || {};
       
-      // Only send update if there are changes
-      if (JSON.stringify(prevVariables) !== JSON.stringify(variables)) {
+      // Only send update if there are changes OR if it's a navigation event
+      if (isNavigation || JSON.stringify(prevVariables) !== JSON.stringify(variables)) {
         // Store new state
         pageStates[page] = variables;
         
-        // Render new HTML without script injection (since client already has scripts)
+        // For navigation events, we already have scripts loaded
         const htmlNew = renderTemplate(page, variables, false);
         
         // Extract head metadata
@@ -169,6 +181,17 @@ io.on('connection', (socket) => {
         }
         if (Object.keys(metaTags).length > 0) {
           headData.meta = metaTags;
+        }
+        
+        // Extract style tags (for SPA navigation)
+        const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+        const styles = [];
+        let styleMatch;
+        while ((styleMatch = styleRegex.exec(htmlNew)) !== null) {
+          styles.push(styleMatch[1]);
+        }
+        if (styles.length > 0) {
+          headData.styles = styles;
         }
         
         // Extract just the body content
@@ -209,6 +232,7 @@ app.get('/pages/:page', async (req, res, next) => {
         params: req.params,
         url: req.url
       },
+      ...req.query, // Flatten query params
       event: 'onLoad'
     };
     
