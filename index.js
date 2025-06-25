@@ -151,12 +151,35 @@ io.on('connection', (socket) => {
         // Render new HTML without script injection (since client already has scripts)
         const htmlNew = renderTemplate(page, variables, false);
         
+        // Extract head metadata
+        const headData = {};
+        
+        // Extract title
+        const titleMatch = htmlNew.match(/<title[^>]*>(.*?)<\/title>/i);
+        if (titleMatch) {
+          headData.title = titleMatch[1];
+        }
+        
+        // Extract meta tags
+        const metaTags = {};
+        const metaRegex = /<meta\s+(?:name|property)=["']([^"']+)["']\s+content=["']([^"']+)["'][^>]*>/gi;
+        let metaMatch;
+        while ((metaMatch = metaRegex.exec(htmlNew)) !== null) {
+          metaTags[metaMatch[1]] = metaMatch[2];
+        }
+        if (Object.keys(metaTags).length > 0) {
+          headData.meta = metaTags;
+        }
+        
         // Extract just the body content
         const bodyMatch = htmlNew.match(/<body[^>]*>([\s\S]*)<\/body>/i);
         const bodyContent = bodyMatch ? bodyMatch[1] : htmlNew;
         
-        // Send just the body content to client
-        socket.emit('update', { html: bodyContent });
+        // Send body content and head metadata to client
+        socket.emit('update', { 
+          html: bodyContent,
+          head: headData
+        });
       }
       
     } catch (err) {

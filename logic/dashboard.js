@@ -27,4 +27,8 @@ if (input.event === 'onLoad') {
   // Refresh timestamp
   output.timestamp = new Date().toLocaleString();
   output.message = 'Dashboard refreshed!';
+  // Update title to show refresh count
+  if (!global.refreshCount) global.refreshCount = 0;
+  global.refreshCount++;
+  output.title = `Dashboard (Refreshed ${global.refreshCount}x)`;
 }

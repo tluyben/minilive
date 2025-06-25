@@ -32,7 +32,7 @@ window.addEventListener('DOMContentLoaded', function() {
   window._socket = socket;
 
   // Listen for HTML updates from server
-  socket.on('update', ({ html }) => {
+  socket.on('update', ({ html, head }) => {
     console.log('Update received, applying intelligent patch...');
     
     // Create a temporary body element with the new content
@@ -141,6 +141,36 @@ window.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
+    
+    // Update head metadata if provided
+    if (head) {
+      // Update title
+      if (head.title !== undefined) {
+        document.title = head.title;
+      }
+      
+      // Update meta tags
+      if (head.meta) {
+        Object.entries(head.meta).forEach(([name, content]) => {
+          // Try to find existing meta tag
+          let metaTag = document.querySelector(`meta[name="${name}"], meta[property="${name}"]`);
+          
+          if (!metaTag) {
+            // Create new meta tag if it doesn't exist
+            metaTag = document.createElement('meta');
+            // Use 'property' for Open Graph tags, 'name' for others
+            if (name.startsWith('og:') || name.startsWith('twitter:')) {
+              metaTag.setAttribute('property', name);
+            } else {
+              metaTag.setAttribute('name', name);
+            }
+            document.head.appendChild(metaTag);
+          }
+          
+          metaTag.setAttribute('content', content);
+        });
+      }
+    }
   });
 
   // Listen for commands from server
