@@ -81,6 +81,9 @@ function renderTemplate(page, data, injectScripts = true, sessionId = null) {
     if (!template.includes('/socket.io/socket.io.js')) {
       // First, inject a small inline script that defines triggerEvent immediately
       const inlineScript = `<script>
+    // Session ID for client-side use
+    window._sessionId = '${sessionId}';
+    
     // Define triggerEvent immediately to prevent errors
     window.triggerEvent = window.triggerEvent || function() {
       console.log('triggerEvent called before client.js loaded, queueing...');
