@@ -263,6 +263,40 @@ class MiniLive {
     });
   }
   
+  extractHeadData(html) {
+    const headData = {};
+    
+    // Extract title
+    const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+    if (titleMatch) {
+      headData.title = titleMatch[1];
+    }
+    
+    // Extract meta tags
+    const metaTags = {};
+    const metaRegex = /<meta\s+(?:name|property)=["']([^"']+)["']\s+content=["']([^"']+)["'][^>]*>/gi;
+    let metaMatch;
+    while ((metaMatch = metaRegex.exec(html)) !== null) {
+      metaTags[metaMatch[1]] = metaMatch[2];
+    }
+    if (Object.keys(metaTags).length > 0) {
+      headData.meta = metaTags;
+    }
+    
+    // Extract style tags
+    const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+    const styles = [];
+    let styleMatch;
+    while ((styleMatch = styleRegex.exec(html)) !== null) {
+      styles.push(styleMatch[1]);
+    }
+    if (styles.length > 0) {
+      headData.styles = styles;
+    }
+    
+    return headData;
+  }
+  
   setupWebSocket() {
     this.io.on('connection', (socket) => {
       console.log('New socket connection:', socket.id);
@@ -296,24 +330,48 @@ class MiniLive {
           }
           
           // Handle SPA navigation
+          let input;
           if (eventType === 'navigate' && payload.targetPage) {
             page = payload.targetPage;
-            eventType = 'onLoad';
             connectionManager.updateCurrentPage(sessionId, page);
-            connectionManager.clearPageState(sessionId, page);
+            
+            // Check if we have stored input for this page (back button case)
+            const storedInput = connectionManager.getLastInput(sessionId, page);
+            if (storedInput) {
+              // Use the stored input to restore exact previous state
+              input = { ...storedInput };
+              // Update request data with current
+              input.request = {
+                method: 'GET',
+                headers: socket.handshake.headers,
+                query: socket.handshake.query
+              };
+            } else {
+              // No stored state, treat as fresh load
+              input = {
+                request: {
+                  method: 'GET',
+                  headers: socket.handshake.headers,
+                  query: socket.handshake.query
+                },
+                ...socket.handshake.query,
+                event: 'onLoad',
+                payload: {}
+              };
+            }
+          } else {
+            // Regular event, not navigation
+            input = {
+              request: {
+                method: 'GET',
+                headers: socket.handshake.headers,
+                query: socket.handshake.query
+              },
+              ...socket.handshake.query,
+              event: eventType,
+              payload: payload || {}
+            };
           }
-          
-          // Prepare input for the logic script
-          const input = {
-            request: {
-              method: 'GET',
-              headers: socket.handshake.headers,
-              query: socket.handshake.query
-            },
-            ...socket.handshake.query,
-            event: eventType,
-            payload: payload || {}
-          };
           
           // Execute the logic script
           const output = this.executeLogic(page, input);
@@ -331,7 +389,7 @@ class MiniLive {
           delete variables.commands;
           
           // Check for changes
-          const isNavigation = input.event === 'onLoad' && input.payload && input.payload.targetPage;
+          const isNavigation = eventType === 'navigate';
           const pageStates = connectionManager.getPageStates(sessionId);
           const prevVariables = pageStates[page] || {};
           
@@ -342,35 +400,7 @@ class MiniLive {
             const htmlNew = this.renderTemplate(page, variables, false);
             
             // Extract head metadata
-            const headData = {};
-            
-            // Extract title
-            const titleMatch = htmlNew.match(/<title[^>]*>(.*?)<\/title>/i);
-            if (titleMatch) {
-              headData.title = titleMatch[1];
-            }
-            
-            // Extract meta tags
-            const metaTags = {};
-            const metaRegex = /<meta\s+(?:name|property)=["']([^"']+)["']\s+content=["']([^"']+)["'][^>]*>/gi;
-            let metaMatch;
-            while ((metaMatch = metaRegex.exec(htmlNew)) !== null) {
-              metaTags[metaMatch[1]] = metaMatch[2];
-            }
-            if (Object.keys(metaTags).length > 0) {
-              headData.meta = metaTags;
-            }
-            
-            // Extract style tags
-            const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-            const styles = [];
-            let styleMatch;
-            while ((styleMatch = styleRegex.exec(htmlNew)) !== null) {
-              styles.push(styleMatch[1]);
-            }
-            if (styles.length > 0) {
-              headData.styles = styles;
-            }
+            const headData = this.extractHeadData(htmlNew);
             
             // Extract body content
             const bodyMatch = htmlNew.match(/<body[^>]*>([\s\S]*)<\/body>/i);
