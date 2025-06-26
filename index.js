@@ -194,6 +194,9 @@ io.on('connection', (socket) => {
         // Store new state in connection manager
         connectionManager.updatePageState(sessionId, page, variables);
         
+        // Store the input for future refreshes
+        connectionManager.updateLastInput(sessionId, page, input);
+        
         // For navigation events, we already have scripts loaded
         const htmlNew = renderTemplate(page, variables, false);
         
@@ -263,18 +266,43 @@ app.get('/pages/:page', async (req, res, next) => {
       return next();
     }
     
-    // Prepare input for initial load
-    const input = {
-      request: {
+    // Get or create session ID from cookie (moved up to use for stored input)
+    let sessionId = req.cookies.sessionId;
+    const isNewSession = !sessionId;
+    if (!sessionId) {
+      sessionId = connectionManager.generateSessionId();
+    }
+    
+    // Check if we have stored input from a previous load (for seamless refresh)
+    const storedInput = !isNewSession ? connectionManager.getLastInput(sessionId, page) : null;
+    
+    let input;
+    if (storedInput) {
+      // Use stored input for seamless refresh experience
+      console.log(`Using stored input for session ${sessionId} on page ${page}`);
+      input = { ...storedInput };
+      // Update request data with current request
+      input.request = {
         method: req.method,
         headers: req.headers,
         query: req.query,
         params: req.params,
         url: req.url
-      },
-      ...req.query, // Flatten query params
-      event: 'onLoad'
-    };
+      };
+    } else {
+      // Prepare fresh input for initial load
+      input = {
+        request: {
+          method: req.method,
+          headers: req.headers,
+          query: req.query,
+          params: req.params,
+          url: req.url
+        },
+        ...req.query, // Flatten query params
+        event: 'onLoad'
+      };
+    }
     
     // Execute logic script
     const output = executeLogic(page, input);
@@ -292,11 +320,8 @@ app.get('/pages/:page', async (req, res, next) => {
     const variables = { ...output };
     delete variables.commands;
     
-    // Get or create session ID from cookie
-    let sessionId = req.cookies.sessionId;
-    if (!sessionId) {
-      sessionId = connectionManager.generateSessionId();
-      // Set cookie with 30 day expiry
+    // Set cookie if it's a new session
+    if (isNewSession) {
       res.cookie('sessionId', sessionId, {
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
         httpOnly: true,
@@ -306,6 +331,9 @@ app.get('/pages/:page', async (req, res, next) => {
     } else {
       console.log('Existing session found:', sessionId);
     }
+    
+    // Store the input for future refreshes (after successful execution)
+    connectionManager.updateLastInput(sessionId, page, input);
     
     // Render the page using our custom function with script injection
     const html = renderTemplate(page, variables, true, sessionId);

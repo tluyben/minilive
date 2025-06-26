@@ -41,6 +41,7 @@ class ConnectionManager {
         socket: socket,
         currentPage: currentPage,
         pageStates: {},
+        lastInputs: {}, // Store last input per page
         createdAt: Date.now(),
         lastActivity: Date.now()
       });
@@ -147,6 +148,24 @@ class ConnectionManager {
     if (connection && connection.pageStates[page]) {
       delete connection.pageStates[page];
     }
+  }
+
+  // Store last input for a page
+  updateLastInput(sessionId, page, input) {
+    const connection = this.connections.get(sessionId);
+    if (connection) {
+      if (!connection.lastInputs) {
+        connection.lastInputs = {};
+      }
+      connection.lastInputs[page] = input;
+      connection.lastActivity = Date.now();
+    }
+  }
+
+  // Get last input for a page
+  getLastInput(sessionId, page) {
+    const connection = this.connections.get(sessionId);
+    return connection && connection.lastInputs ? connection.lastInputs[page] : null;
   }
 
   // Broadcast to all connections on a specific page
