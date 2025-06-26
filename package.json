@@ -1,5 +1,5 @@
 {
-  "name": "my-app",
+  "name": "minilive",
   "version": "1.0.0",
   "description": "Server-driven UI with Mustache templates and JSON event handlers",
   "main": "index.js",
