@@ -18,6 +18,7 @@ class MiniLive {
       publicDir: options.publicDir || path.join(process.cwd(), 'public'),
       commandHandler: options.commandHandler || null,
       templateRewriter: options.templateRewriter || null,
+      includes: options.includes || null,
       ...options
     };
     
@@ -162,8 +163,40 @@ class MiniLive {
         // Then inject the main scripts before </head>
         const headEndIndex = template.toLowerCase().indexOf('</head>');
         if (headEndIndex !== -1) {
+          let allIncludes = '';
+          
+          // Add custom includes if provided
+          if (this.options.includes) {
+            const pageIncludes = this.options.includes(page);
+            if (Array.isArray(pageIncludes)) {
+              pageIncludes.forEach(include => {
+                if (typeof include === 'string') {
+                  // Auto-detect type by extension
+                  if (include.endsWith('.css')) {
+                    allIncludes += `  <link rel="stylesheet" href="${include}">\n`;
+                  } else if (include.endsWith('.js')) {
+                    allIncludes += `  <script src="${include}"></script>\n`;
+                  }
+                } else if (typeof include === 'object') {
+                  // Explicit type
+                  if (include.type === 'css') {
+                    allIncludes += `  <link rel="stylesheet" href="${include.src}">\n`;
+                  } else if (include.type === 'js') {
+                    allIncludes += `  <script src="${include.src}"${include.defer ? ' defer' : ''}${include.async ? ' async' : ''}></script>\n`;
+                  } else if (include.type === 'inline-css') {
+                    allIncludes += `  <style>${include.content}</style>\n`;
+                  } else if (include.type === 'inline-js') {
+                    allIncludes += `  <script>${include.content}</script>\n`;
+                  }
+                }
+              });
+            }
+          }
+          
+          // Add MiniLive required scripts
           const scriptTags = `  <script src="/minilive/morphdom.js"></script>\n  <script src="/socket.io/socket.io.js"></script>\n  <script src="/minilive/client.js"></script>\n`;
-          template = template.slice(0, headEndIndex) + scriptTags + template.slice(headEndIndex);
+          
+          template = template.slice(0, headEndIndex) + allIncludes + scriptTags + template.slice(headEndIndex);
         }
       }
     }

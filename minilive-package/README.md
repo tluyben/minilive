@@ -106,3 +106,22 @@ const server = minilive({
   }
 });
 ```
+
+### Page-Specific Includes
+
+Add CSS and JavaScript files per page:
+
+```javascript
+const server = minilive({
+  includes: (page) => {
+    if (page === 'dashboard') {
+      return [
+        '/css/dashboard.css',
+        'https://cdn.example.com/charts.js',
+        { type: 'js', src: '/js/analytics.js', defer: true }
+      ];
+    }
+    return [];
+  }
+});
+```
