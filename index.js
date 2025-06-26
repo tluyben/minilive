@@ -4,8 +4,10 @@ const { Server } = require('socket.io');
 const mustacheExpress = require('mustache-express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const mustache = require('mustache');
+const connectionManager = require('./connection');
 
 const app = express();
 const server = http.createServer(app);
@@ -19,6 +21,7 @@ app.set('views', path.join(__dirname, 'pages'));
 // Static assets
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 // Helper: Execute logic script with input
 function executeLogic(page, input) {
@@ -65,7 +68,7 @@ async function processCommands(commands, socket, res) {
 }
 
 // Helper: render a template with data
-function renderTemplate(page, data, injectScripts = true) {
+function renderTemplate(page, data, injectScripts = true, sessionId = null) {
   const templatePath = path.join(__dirname, 'pages', `${page}.mhtml`);
   if (!fs.existsSync(templatePath)) {
     throw new Error(`Template ${page}.mhtml not found`);
@@ -108,17 +111,44 @@ function renderTemplate(page, data, injectScripts = true) {
 
 // WebSocket connection handling
 io.on('connection', (socket) => {
-  // Store previous render data per page
-  const pageStates = {};
+  console.log('New socket connection:', socket.id);
+  
+  // Extract session ID from cookie via handshake
+  const cookies = socket.handshake.headers.cookie || '';
+  const sessionMatch = cookies.match(/sessionId=([^;]+)/);
+  const sessionId = sessionMatch ? sessionMatch[1] : null;
+  
+  if (!sessionId) {
+    console.error('No session ID in cookie for socket:', socket.id);
+    socket.emit('error', { message: 'No session found. Please refresh the page.' });
+    socket.disconnect(true);
+    return;
+  }
+  
+  // Wait for client to send page info
+  socket.on('register', ({ currentPage }) => {
+    console.log('Client registration:', { sessionId, currentPage });
+    connectionManager.registerConnection(socket, sessionId, currentPage);
+  });
   
   socket.on('event', async ({ page, eventType, payload }) => {
     try {
+      // Get connection info - we already have sessionId from cookie
+      const connectionInfo = connectionManager.getConnection(sessionId);
+      if (!connectionInfo) {
+        console.error('No connection found for session:', sessionId);
+        socket.emit('error', { message: 'Session not found. Please refresh the page.' });
+        return;
+      }
+      
       // Handle SPA navigation
       if (eventType === 'navigate' && payload.targetPage) {
         page = payload.targetPage;
         eventType = 'onLoad';
+        // Update current page in connection manager
+        connectionManager.updateCurrentPage(sessionId, page);
         // Clear the previous state for the target page to ensure fresh render
-        delete pageStates[page];
+        connectionManager.clearPageState(sessionId, page);
       }
       
       // Prepare input for the logic script
@@ -152,13 +182,14 @@ io.on('connection', (socket) => {
       // For navigation, always send update (don't compare with previous state)
       const isNavigation = input.event === 'onLoad' && input.payload && input.payload.targetPage;
       
-      // Get previous state for this page
+      // Get previous state for this page from connection manager
+      const pageStates = connectionManager.getPageStates(sessionId);
       const prevVariables = pageStates[page] || {};
       
       // Only send update if there are changes OR if it's a navigation event
       if (isNavigation || JSON.stringify(prevVariables) !== JSON.stringify(variables)) {
-        // Store new state
-        pageStates[page] = variables;
+        // Store new state in connection manager
+        connectionManager.updatePageState(sessionId, page, variables);
         
         // For navigation events, we already have scripts loaded
         const htmlNew = renderTemplate(page, variables, false);
@@ -210,6 +241,12 @@ io.on('connection', (socket) => {
       socket.emit('error', { message: err.message });
     }
   });
+  
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected:', socket.id);
+    connectionManager.handleDisconnect(socket.id);
+  });
 });
 
 // Page routes
@@ -252,14 +289,43 @@ app.get('/pages/:page', async (req, res, next) => {
     const variables = { ...output };
     delete variables.commands;
     
+    // Get or create session ID from cookie
+    let sessionId = req.cookies.sessionId;
+    if (!sessionId) {
+      sessionId = connectionManager.generateSessionId();
+      // Set cookie with 30 day expiry
+      res.cookie('sessionId', sessionId, {
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        httpOnly: true,
+        sameSite: 'strict'
+      });
+      console.log('New session created:', sessionId);
+    } else {
+      console.log('Existing session found:', sessionId);
+    }
+    
     // Render the page using our custom function with script injection
-    const html = renderTemplate(page, variables);
+    const html = renderTemplate(page, variables, true, sessionId);
     res.send(html);
     
   } catch (err) {
     console.error('Page route error:', err);
     next(err);
   }
+});
+
+// Admin endpoint for connection stats (optional)
+app.get('/admin/connections', (req, res) => {
+  const stats = connectionManager.getStats();
+  res.json({
+    stats,
+    connections: Array.from(connectionManager.connections.entries()).map(([sessionId, conn]) => ({
+      sessionId,
+      currentPage: conn.currentPage,
+      connected: conn.socket && conn.socket.connected,
+      lastActivity: new Date(conn.lastActivity).toISOString()
+    }))
+  });
 });
 
 // Start server

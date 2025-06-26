@@ -228,6 +228,11 @@ window.addEventListener('DOMContentLoaded', function() {
   socket.on('connect', () => {
     console.log('Connected to server');
     
+    // Register this connection with current page
+    const currentPage = getCurrentPage();
+    socket.emit('register', { currentPage });
+    console.log('Registered on page:', currentPage);
+    
     // Process any queued events
     while (window._eventQueue.length > 0) {
       const { eventType, payload } = window._eventQueue.shift();
