@@ -1,6 +1,6 @@
 {
   "name": "minilive",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Server-driven UI framework with live updates and seamless state management",
   "main": "index.js",
   "files": [
