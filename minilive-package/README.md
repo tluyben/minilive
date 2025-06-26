@@ -75,3 +75,34 @@ When you install minilive, you get:
 - State persistence across refreshes
 
 All client-side assets (morphdom, client.js) are served automatically from the package.
+
+## Advanced Options
+
+### Custom Command Handler
+
+Extend the command system with your own commands:
+
+```javascript
+const server = minilive({
+  commandHandler: async (cmd, { socket, res }) => {
+    if (cmd.type === 'customCommand') {
+      // Handle your custom command
+      return true; // Return true to skip built-in processing
+    }
+    return false; // Let built-in handler process it
+  }
+});
+```
+
+### Template Rewriter
+
+Preprocess templates before rendering:
+
+```javascript
+const server = minilive({
+  templateRewriter: (template, { page, data, sessionId }) => {
+    // Modify template here
+    return template.replace('{{customTag}}', 'replaced');
+  }
+});
+```

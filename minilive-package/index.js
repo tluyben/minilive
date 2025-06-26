@@ -16,6 +16,8 @@ class MiniLive {
       pagesDir: options.pagesDir || path.join(process.cwd(), 'pages'),
       logicDir: options.logicDir || path.join(process.cwd(), 'logic'),
       publicDir: options.publicDir || path.join(process.cwd(), 'public'),
+      commandHandler: options.commandHandler || null,
+      templateRewriter: options.templateRewriter || null,
       ...options
     };
     
@@ -86,6 +88,13 @@ class MiniLive {
     for (const cmd of commands) {
       const cmdType = cmd.type || cmd.command;
       
+      // First, try custom command handler if provided
+      if (this.options.commandHandler) {
+        const handled = await this.options.commandHandler(cmd, { socket, res });
+        if (handled) continue; // Skip built-in handling if custom handler returned true
+      }
+      
+      // Built-in command handling
       switch (cmdType) {
         case 'redirect':
           if (res) {
@@ -119,6 +128,11 @@ class MiniLive {
       throw new Error(`Template ${page}.mhtml not found`);
     }
     let template = fs.readFileSync(templatePath, 'utf8');
+    
+    // Apply template rewriter if provided
+    if (this.options.templateRewriter) {
+      template = this.options.templateRewriter(template, { page, data, sessionId });
+    }
     
     // Inject required scripts if not present and injectScripts is true
     if (injectScripts) {
