@@ -1,12 +1,16 @@
 {
   "name": "minilive",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Server-driven UI framework with live updates and seamless state management",
   "main": "index.js",
+  "types": "index.d.ts",
   "files": [
     "index.js",
+    "index.d.ts",
     "connection.js",
-    "client.js"
+    "connection.d.ts",
+    "client.js",
+    "client.d.ts"
   ],
   "keywords": [
     "server-driven-ui",
