@@ -125,3 +125,50 @@ const server = minilive({
   }
 });
 ```
+
+## Testing
+
+### testLogic Function
+
+Test your page logic without running the full server:
+
+```javascript
+const { testLogic } = require('minilive');
+
+// Test a page with JSON input
+const result = await testLogic('home', { 
+  event: 'click',
+  userId: 123 
+});
+
+console.log(result); // Returns the output object from the logic script
+```
+
+**Parameters:**
+- `pageName`: Page name without `.js` extension (e.g., 'login', 'dashboard')
+- `jsonInput`: JSON object to pass as `input` to the logic script
+- `options`: Optional config object with `logicDir` (defaults to `./logic`)
+
+**Example test:**
+```javascript
+const { testLogic } = require('minilive');
+
+async function testHomePage() {
+  try {
+    // Test initial load
+    const initialState = await testLogic('home', { event: 'onLoad' });
+    console.log('Initial state:', initialState);
+    
+    // Test button click
+    const clickState = await testLogic('home', { event: 'click' });
+    console.log('After click:', clickState);
+    
+  } catch (error) {
+    console.error('Test failed:', error.message);
+  }
+}
+
+testHomePage();
+```
+
+This function uses the same VM execution environment as the live server, ensuring your tests match production behavior exactly.

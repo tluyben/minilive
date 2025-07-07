@@ -496,6 +496,49 @@ class MiniLive {
   }
 }
 
+// Standalone testLogic function for testing pages
+async function testLogic(pageName, jsonInput, options = {}) {
+  const logicDir = options.logicDir || path.join(process.cwd(), 'logic');
+  const logicPath = path.join(logicDir, `${pageName}.js`);
+  
+  try {
+    // Read the script
+    const script = fs.readFileSync(logicPath, 'utf8');
+    
+    // Create isolated context with input and output
+    const sandbox = {
+      input: jsonInput,
+      output: {},
+      console: console,
+      require: require,
+      global: global,
+      process: process
+    };
+    
+    // Execute in VM context with async support
+    const vm = require('vm');
+    vm.createContext(sandbox);
+    
+    // Wrap script in async function to allow await
+    const asyncScript = `
+      (async function() {
+        ${script}
+      })();
+    `;
+    
+    const result = vm.runInContext(asyncScript, sandbox);
+    
+    // If the result is a Promise, await it
+    if (result && typeof result.then === 'function') {
+      await result;
+    }
+    
+    return sandbox.output;
+  } catch (err) {
+    throw new Error(`Error in logic script ${pageName}.js: ${err.message}`);
+  }
+}
+
 // Export factory function for cleaner API
 module.exports = function createMiniLive(options) {
   return new MiniLive(options);
@@ -503,3 +546,6 @@ module.exports = function createMiniLive(options) {
 
 // Also export the class for advanced usage
 module.exports.MiniLive = MiniLive;
+
+// Export testLogic function
+module.exports.testLogic = testLogic;
