@@ -53,7 +53,7 @@ class MiniLive {
   }
   
   // Helper: Execute logic script with input
-  executeLogic(page, input) {
+  async executeLogic(page, input) {
     const logicPath = path.join(this.options.logicDir, `${page}.js`);
     
     try {
@@ -70,10 +70,23 @@ class MiniLive {
         process: process
       };
       
-      // Execute in VM context
+      // Execute in VM context with async support
       const vm = require('vm');
       vm.createContext(sandbox);
-      vm.runInContext(script, sandbox);
+      
+      // Wrap script in async function to allow await
+      const asyncScript = `
+        (async function() {
+          ${script}
+        })();
+      `;
+      
+      const result = vm.runInContext(asyncScript, sandbox);
+      
+      // If the result is a Promise, await it
+      if (result && typeof result.then === 'function') {
+        await result;
+      }
       
       return sandbox.output;
     } catch (err) {
@@ -255,7 +268,7 @@ class MiniLive {
         }
         
         // Execute logic script
-        const output = this.executeLogic(page, input);
+        const output = await this.executeLogic(page, input);
         
         // Process commands if any
         if (output.commands) {
@@ -421,7 +434,7 @@ class MiniLive {
           }
           
           // Execute the logic script
-          const output = this.executeLogic(page, input);
+          const output = await this.executeLogic(page, input);
           
           // Process commands if any
           if (output.commands) {
