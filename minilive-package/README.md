@@ -126,6 +126,51 @@ const server = minilive({
 });
 ```
 
+### Prepend/Postpend JavaScript
+
+Add JavaScript code that runs before or after your logic scripts:
+
+```javascript
+const server = minilive({
+  prepend: `
+    // This code runs before every logic script
+    const helpers = {
+      formatDate: (date) => new Date(date).toLocaleDateString(),
+      capitalize: (str) => str.charAt(0).toUpperCase() + str.slice(1)
+    };
+    
+    // Make helpers available to all logic scripts
+    const h = helpers;
+  `,
+  postpend: `
+    // This code runs after every logic script
+    if (output.debug) {
+      console.log('Debug output:', output);
+    }
+    
+    // Add timestamp to all responses
+    output._timestamp = new Date().toISOString();
+  `
+});
+```
+
+This feature is useful for:
+- Sharing common utilities across all logic scripts
+- Adding debugging or logging functionality
+- Injecting global configuration or constants
+- Post-processing output data
+- Setting up common error handlers
+
+Example logic script using prepended helpers:
+```javascript
+// logic/profile.js
+output = {
+  username: input.username,
+  joinDate: h.formatDate(input.joinDate), // Uses prepended helper
+  displayName: h.capitalize(input.username)
+};
+```
+
 ## Testing
 
 ### testLogic Function

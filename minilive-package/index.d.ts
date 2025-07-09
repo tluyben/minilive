@@ -17,6 +17,10 @@ export interface MiniLiveOptions {
   templateRewriter?: (template: string, context: TemplateContext) => string;
   /** Function to include custom scripts/styles per page */
   includes?: (page: string) => Include[] | null;
+  /** JavaScript string to prepend to logic scripts before execution */
+  prepend?: string;
+  /** JavaScript string to append to logic scripts before execution */
+  postpend?: string;
 }
 
 export interface Command {

@@ -75,11 +75,22 @@ class MiniLive {
       vm.createContext(sandbox);
       
       // Wrap script in async function to allow await
-      const asyncScript = `
+      let asyncScript = `
         (async function() {
           ${script}
         })();
       `;
+      
+      // Add prepend and postpend if provided
+      if (this.options.prepend || this.options.postpend) {
+        asyncScript = `
+          (async function() {
+            ${this.options.prepend || ''}
+            ${script}
+            ${this.options.postpend || ''}
+          })();
+        `;
+      }
       
       const result = vm.runInContext(asyncScript, sandbox);
       
