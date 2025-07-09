@@ -159,6 +159,48 @@ class MiniLive {
       template = this.options.templateRewriter(template, { page, data, sessionId });
     }
     
+    // Load partials recursively
+    const partials = {};
+    const loadedPartials = new Set(); // Prevent infinite recursion
+    
+    const loadPartials = (content, currentPath = '') => {
+      // Find all {{> partial}} references in the content
+      const partialRegex = /\{\{>\s*([^\s}]+)\s*\}\}/g;
+      let match;
+      
+      while ((match = partialRegex.exec(content)) !== null) {
+        const partialName = match[1];
+        
+        // Skip if already loaded (prevents infinite recursion)
+        if (loadedPartials.has(partialName)) {
+          continue;
+        }
+        
+        // Build the partial path
+        const partialPath = path.join(this.options.pagesDir, `${partialName}.mhtml`);
+        
+        // Check if partial file exists
+        if (!fs.existsSync(partialPath)) {
+          throw new Error(`Partial template '${partialName}' not found at ${partialPath}`);
+        }
+        
+        // Read the partial content
+        const partialContent = fs.readFileSync(partialPath, 'utf8');
+        
+        // Mark as loaded
+        loadedPartials.add(partialName);
+        
+        // Store the partial
+        partials[partialName] = partialContent;
+        
+        // Recursively load any partials referenced in this partial
+        loadPartials(partialContent, partialName);
+      }
+    };
+    
+    // Start loading partials from the main template
+    loadPartials(template);
+    
     // Inject required scripts if not present and injectScripts is true
     if (injectScripts) {
       // Check if socket.io script is present
@@ -225,7 +267,7 @@ class MiniLive {
       }
     }
     
-    return mustache.render(template, data);
+    return mustache.render(template, data, partials);
   }
   
   setupRoutes() {

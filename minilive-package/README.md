@@ -171,6 +171,107 @@ output = {
 };
 ```
 
+## Partials
+
+MiniLive supports Mustache partials for reusable template components. Partials allow you to break your templates into smaller, reusable pieces.
+
+### Basic Usage
+
+Create partial files in your pages directory with the `.mhtml` extension:
+
+```
+pages/
+├── home.mhtml
+├── header.mhtml        # Partial
+├── footer.mhtml        # Partial
+└── components/
+    └── user-card.mhtml # Nested partial
+```
+
+Reference partials in your templates using `{{> partialName}}`:
+
+```html
+<!-- pages/home.mhtml -->
+<!DOCTYPE html>
+<html>
+<body>
+  {{> header}}
+  
+  <main>
+    <h1>{{title}}</h1>
+    {{#users}}
+      {{> components/user-card}}
+    {{/users}}
+  </main>
+  
+  {{> footer}}
+</body>
+</html>
+```
+
+```html
+<!-- pages/header.mhtml -->
+<header>
+  <nav>
+    <a href="/">Home</a>
+    {{#isLoggedIn}}
+      <span>Welcome, {{username}}!</span>
+    {{/isLoggedIn}}
+  </nav>
+</header>
+```
+
+```html
+<!-- pages/components/user-card.mhtml -->
+<div class="user-card">
+  <img src="{{avatar}}" alt="{{name}}" />
+  <h3>{{name}}</h3>
+  <p>{{bio}}</p>
+</div>
+```
+
+### Important Notes
+
+1. **File Resolution**: Partials are resolved relative to the `pagesDir` directory
+2. **Extension**: The `.mhtml` extension is automatically added - don't include it in the partial reference
+3. **Nested Partials**: Partials can include other partials (recursive loading is supported)
+4. **Error Handling**: Missing partials will throw an error with the expected file path
+5. **Data Context**: Partials inherit the data context from their parent template
+
+### Logic Script Requirements
+
+Your logic scripts must provide data for both the main template AND all referenced partials:
+
+```javascript
+// logic/home.js
+output = {
+  // Main template data
+  title: 'My App',
+  
+  // Header partial data
+  isLoggedIn: true,
+  username: 'John Doe',
+  
+  // User cards data
+  users: [
+    {
+      name: 'Alice',
+      avatar: '/images/alice.jpg',
+      bio: 'Frontend Developer'
+    },
+    {
+      name: 'Bob',
+      avatar: '/images/bob.jpg',
+      bio: 'Backend Developer'
+    }
+  ],
+  
+  // Footer partial data
+  copyrightYear: new Date().getFullYear(),
+  companyName: 'My Company'
+};
+```
+
 ## Testing
 
 ### testLogic Function
