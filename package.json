@@ -1,6 +1,7 @@
 {
-  "name": "minilive",
+  "name": "minilive-root",
   "version": "1.0.0",
+  "private": true,
   "description": "Server-driven UI with Mustache templates and JSON event handlers",
   "main": "index.js",
   "scripts": {
