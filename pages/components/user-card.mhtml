@@ -1,0 +1,24 @@
+<div class="user-card">
+  <div class="user-avatar">
+    <img src="{{avatar}}" alt="{{name}}" />
+  </div>
+  <div class="user-info">
+    <h3 class="user-name">{{name}}</h3>
+    <p class="user-title">{{title}}</p>
+    <p class="user-email">{{email}}</p>
+    {{#isOnline}}
+      <span class="user-status online">Online</span>
+    {{/isOnline}}
+    {{^isOnline}}
+      <span class="user-status offline">Offline</span>
+    {{/isOnline}}
+  </div>
+  <div class="user-actions">
+    <button class="btn btn-primary" onclick="triggerEvent('viewProfile', {userId: '{{id}}'})">
+      View Profile
+    </button>
+    <button class="btn btn-secondary" onclick="triggerEvent('sendMessage', {userId: '{{id}}'})">
+      Message
+    </button>
+  </div>
+</div>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 30px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .title {
+      color: #333;
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      color: #666;
+      font-size: 1.1rem;
+    }
+    
+    /* Navigation Styles */
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 30px;
+    }
+    
+    .nav-brand h2 {
+      color: #667eea;
+      font-size: 1.5rem;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav-link {
+      color: #666;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+      background: #f0f0f0;
+      color: #333;
+    }
+    
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .user-greeting {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #5a67d8;
+    }
+    
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+    
+    .btn-secondary:hover {
+      background: #cbd5e0;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #667eea;
+      color: #667eea;
+    }
+    
+    .btn-outline:hover {
+      background: #667eea;
+      color: white;
+    }
+    
+    /* User Card Styles */
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .user-card {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    
+    .user-card:hover {
+      transform: translateY(-2px);
+    }
+    
+    .user-avatar {
+      margin-bottom: 15px;
+    }
+    
+    .user-avatar img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .user-name {
+      color: #333;
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+    }
+    
+    .user-title {
+      color: #667eea;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+    
+    .user-email {
+      color: #666;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+    }
+    
+    .user-status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-bottom: 15px;
+    }
+    
+    .user-status.online {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    .user-status.offline {
+      background: #fed7d7;
+      color: #c53030;
+    }
+    
+    .user-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .user-actions .btn {
+      font-size: 0.8rem;
+      padding: 6px 12px;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      color: #666;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    {{> components/navigation}}
+    
+    <div class="header">
+      <h1 class="title">{{title}}</h1>
+      <p class="subtitle">{{subtitle}}</p>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number">{{totalUsers}}</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{onlineUsers}}</div>
+        <div class="stat-label">Online Now</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{newToday}}</div>
+        <div class="stat-label">New Today</div>
+      </div>
+    </div>
+    
+    <div class="user-grid">
+      {{#users}}
+        {{> components/user-card}}
+      {{/users}}
+    </div>
+    
+    <div class="footer">
+      <p>&copy; 2024 MiniLive Demo - User Management System</p>
+    </div>
+  </div>
+</body>
+</html>

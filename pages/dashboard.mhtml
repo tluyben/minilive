@@ -4,77 +4,125 @@
   <meta charset="utf-8">
   <title>{{title}}</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .dashboard {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 30px;
-      background-color: #f9f9f9;
+    
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 90%;
+      margin: 20px;
     }
-    h1 {
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .title {
       color: #333;
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
     }
-    .message {
-      color: green;
-      font-size: 18px;
-      margin-bottom: 20px;
-    }
-    .timestamp {
+    
+    .subtitle {
       color: #666;
-      font-size: 14px;
-      margin-bottom: 20px;
+      font-size: 1rem;
     }
-    button {
+    
+    .content {
+      margin-bottom: 30px;
+    }
+    
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      color: #666;
+      font-size: 0.875rem;
+    }
+    
+    /* Dashboard Styles */
+    .dashboard-content {
+      text-align: center;
+    }
+    
+    .dashboard-message {
+      font-size: 1.2rem;
+      color: #4a5568;
+      margin-bottom: 25px;
+    }
+    
+    .dashboard-timestamp {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 30px;
+    }
+    
+    .dashboard-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .dashboard-button {
       padding: 10px 20px;
-      margin-right: 10px;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
       cursor: pointer;
+      transition: transform 0.2s;
     }
-    .logout-btn {
-      background-color: #dc3545;
+    
+    .dashboard-button:hover {
+      transform: translateY(-1px);
+    }
+    
+    .dashboard-button.primary {
+      background: #48bb78;
       color: white;
     }
-    .logout-btn:hover {
-      background-color: #c82333;
-    }
-    .refresh-btn {
-      background-color: #28a745;
+    
+    .dashboard-button.secondary {
+      background: #e53e3e;
       color: white;
-    }
-    .refresh-btn:hover {
-      background-color: #218838;
     }
   </style>
 </head>
 <body>
-  <div class="dashboard">
-    <h1>{{title}}</h1>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">{{title}}</h1>
+      {{#subtitle}}
+        <p class="subtitle">{{subtitle}}</p>
+      {{/subtitle}}
+    </div>
     
-    <div class="message">{{message}}</div>
+    <div class="content">
+      {{> dashboard-content}}
+    </div>
     
-    <div class="timestamp">Last updated: {{timestamp}}</div>
-    
-    <button
-      class="refresh-btn"
-      type="button"
-      onclick="triggerEvent('refresh')"
-    >
-      Refresh
-    </button>
-    
-    <button
-      class="logout-btn"
-      type="button"
-      onclick="triggerEvent('logout')"
-    >
-      Logout
-    </button>
+    <div class="footer">
+      <p>&copy; 2024 MiniLive Demo</p>
+    </div>
   </div>
 </body>
 </html>

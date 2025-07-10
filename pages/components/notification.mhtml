@@ -1,0 +1,22 @@
+<div class="notification notification-{{type}}">
+  <div class="notification-icon">
+    {{#type}}
+      {{#.}}
+        {{#eq type "success"}}✅{{/eq}}
+        {{#eq type "error"}}❌{{/eq}}
+        {{#eq type "warning"}}⚠️{{/eq}}
+        {{#eq type "info"}}ℹ️{{/eq}}
+      {{/.}}
+    {{/type}}
+  </div>
+  <div class="notification-content">
+    <h4 class="notification-title">{{title}}</h4>
+    <p class="notification-message">{{message}}</p>
+    {{#timestamp}}
+      <span class="notification-time">{{timestamp}}</span>
+    {{/timestamp}}
+  </div>
+  <button class="notification-close" onclick="triggerEvent('closeNotification', {id: '{{id}}'})">
+    ×
+  </button>
+</div>

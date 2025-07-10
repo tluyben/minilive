@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 30px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .title {
+      color: #333;
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      color: #666;
+      font-size: 1.1rem;
+    }
+    
+    /* Navigation Styles */
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 30px;
+    }
+    
+    .nav-brand h2 {
+      color: #667eea;
+      font-size: 1.5rem;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav-link {
+      color: #666;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+      background: #f0f0f0;
+      color: #333;
+    }
+    
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .user-greeting {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #5a67d8;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #667eea;
+      color: #667eea;
+    }
+    
+    .btn-outline:hover {
+      background: #667eea;
+      color: white;
+    }
+    
+    /* Notification Styles */
+    .notifications {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .notification {
+      display: flex;
+      align-items: flex-start;
+      padding: 20px;
+      border-radius: 10px;
+      position: relative;
+      transition: transform 0.2s;
+    }
+    
+    .notification:hover {
+      transform: translateX(5px);
+    }
+    
+    .notification-success {
+      background: #f0fff4;
+      border-left: 4px solid #48bb78;
+    }
+    
+    .notification-error {
+      background: #fff5f5;
+      border-left: 4px solid #e53e3e;
+    }
+    
+    .notification-warning {
+      background: #fffbeb;
+      border-left: 4px solid #ed8936;
+    }
+    
+    .notification-info {
+      background: #ebf8ff;
+      border-left: 4px solid #3182ce;
+    }
+    
+    .notification-icon {
+      font-size: 1.5rem;
+      margin-right: 15px;
+      margin-top: 2px;
+    }
+    
+    .notification-content {
+      flex: 1;
+    }
+    
+    .notification-title {
+      color: #333;
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+    
+    .notification-message {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    
+    .notification-time {
+      color: #999;
+      font-size: 0.8rem;
+    }
+    
+    .notification-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #999;
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    
+    .notification-close:hover {
+      background: rgba(0, 0, 0, 0.1);
+      color: #666;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 10px;
+      color: #999;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      color: #666;
+      font-size: 0.875rem;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    {{> components/navigation}}
+    
+    <div class="header">
+      <h1 class="title">{{title}}</h1>
+      <p class="subtitle">{{subtitle}}</p>
+    </div>
+    
+    <div class="notifications">
+      {{#notifications}}
+        {{> components/notification}}
+      {{/notifications}}
+      
+      {{^notifications}}
+        <div class="empty-state">
+          <h3>No notifications yet</h3>
+          <p>You're all caught up! New notifications will appear here.</p>
+        </div>
+      {{/notifications}}
+    </div>
+    
+    <div class="actions">
+      <button class="btn btn-primary" onclick="triggerEvent('markAllRead')">
+        Mark All Read
+      </button>
+      <button class="btn btn-outline" onclick="triggerEvent('refresh')">
+        Refresh
+      </button>
+    </div>
+    
+    <div class="footer">
+      <p>&copy; 2024 MiniLive Demo - Notification Center</p>
+    </div>
+  </div>
+</body>
+</html>

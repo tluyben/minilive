@@ -1,0 +1,35 @@
+{{#error}}
+  <div class="message error">{{error}}</div>
+{{/error}}
+
+{{#successMessage}}
+  <div class="message success">{{successMessage}}</div>
+{{/successMessage}}
+
+<form class="form" id="{{formId}}" onsubmit="return false;">
+  {{#fields}}
+    <div class="form-group">
+      <label class="form-label" for="{{id}}">{{label}}:</label>
+      <input 
+        class="form-input"
+        type="{{type}}" 
+        id="{{id}}" 
+        name="{{name}}" 
+        value="{{value}}" 
+        placeholder="{{placeholder}}"
+        {{#enterSubmit}}
+          onkeyup="if(event.key === 'Enter') document.getElementById('{{../submitButtonId}}').click()"
+        {{/enterSubmit}}
+      />
+    </div>
+  {{/fields}}
+  
+  <button
+    class="form-button"
+    id="{{submitButtonId}}"
+    type="button"
+    onclick="{{submitAction}}"
+  >
+    {{submitText}}
+  </button>
+</form>

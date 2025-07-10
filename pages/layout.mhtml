@@ -136,6 +136,54 @@
       border: 1px solid #bee3f8;
     }
     
+    /* Dashboard Styles */
+    .dashboard-content {
+      text-align: center;
+    }
+    
+    .dashboard-message {
+      font-size: 1.2rem;
+      color: #4a5568;
+      margin-bottom: 25px;
+    }
+    
+    .dashboard-timestamp {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 30px;
+    }
+    
+    .dashboard-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .dashboard-button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .dashboard-button:hover {
+      transform: translateY(-1px);
+    }
+    
+    .dashboard-button.primary {
+      background: #48bb78;
+      color: white;
+    }
+    
+    .dashboard-button.secondary {
+      background: #e53e3e;
+      color: white;
+    }
+    
     .hint {
       background: #f7fafc;
       padding: 16px;
@@ -157,11 +205,7 @@
     </div>
     
     <div class="content">
-      {{> form}}
-      
-      <div class="hint">
-        <strong>Hint:</strong> Use test@example.com / password to login
-      </div>
+      <!-- Page content goes here -->
     </div>
     
     <div class="footer">

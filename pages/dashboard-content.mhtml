@@ -1,0 +1,23 @@
+<div class="dashboard-content">
+  <div class="dashboard-message">{{message}}</div>
+  
+  <div class="dashboard-timestamp">Last updated: {{timestamp}}</div>
+  
+  <div class="dashboard-actions">
+    <button
+      class="dashboard-button primary"
+      type="button"
+      onclick="triggerEvent('refresh')"
+    >
+      Refresh
+    </button>
+    
+    <button
+      class="dashboard-button secondary"
+      type="button"
+      onclick="triggerEvent('logout')"
+    >
+      Logout
+    </button>
+  </div>
+</div>

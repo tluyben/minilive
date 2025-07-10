@@ -272,7 +272,7 @@ class MiniLive {
   
   setupRoutes() {
     // Page routes
-    this.app.get('/pages/:page', async (req, res, next) => {
+    this.app.get('/:page', async (req, res, next) => {
       const page = req.params.page;
       
       try {
@@ -540,8 +540,8 @@ class MiniLive {
   }
   
   serve(callback) {
-    this.server.listen(this.options.port, () => {
-      console.log(`🚀 MiniLive server listening on http://localhost:${this.options.port}`);
+    this.server.listen(this.options.port, '0.0.0.0', () => {
+      console.log(`🚀 MiniLive server listening on http://0.0.0.0:${this.options.port}`);
       if (callback) callback();
     });
     
